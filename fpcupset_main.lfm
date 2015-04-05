@@ -1,0 +1,74 @@
+object Form1: TForm1
+  Left = 279
+  Height = 345
+  Top = 142
+  Width = 541
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'fpcup path changer'
+  ClientHeight = 345
+  ClientWidth = 541
+  OnShow = FormShow
+  Position = poDefaultPosOnly
+  LCLVersion = '1.5'
+  object Edit1: TEdit
+    Left = 16
+    Height = 23
+    Top = 24
+    Width = 511
+    Anchors = [akTop, akLeft, akRight]
+    ReadOnly = True
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 16
+    Height = 23
+    Top = 56
+    Width = 511
+    Anchors = [akTop, akLeft, akRight]
+    ReadOnly = True
+    TabOrder = 1
+    Text = 'Edit2'
+  end
+  object Button1: TButton
+    Left = 236
+    Height = 26
+    Top = 308
+    Width = 75
+    Anchors = [akBottom]
+    Caption = 'Change'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Memo1: TMemo
+    Left = 16
+    Height = 144
+    Top = 152
+    Width = 511
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      ''
+    )
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 3
+    WordWrap = False
+  end
+  object Edit3: TEdit
+    Left = 16
+    Height = 23
+    Top = 88
+    Width = 511
+    TabOrder = 4
+    Text = 'fpc'
+  end
+  object Edit4: TEdit
+    Left = 16
+    Height = 23
+    Top = 120
+    Width = 511
+    TabOrder = 5
+    Text = 'extras;config_lazarus;lazarus;fpc[\\/]bin];fpc'
+  end
+end
