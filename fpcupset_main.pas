@@ -131,7 +131,6 @@ begin
 end;
 
 
-
 function TForm1.Patch_fpc_cfg(const File_Path: string; new_path,
   fpc_dirname: string): string;
 const
@@ -171,6 +170,8 @@ begin
           until not reg_fpccfg.ExecNext;
           *)
           Result:=reg_fpccfg.Replace(Inbuff.Text,new_path+'$2$3',True);
+          Inbuff.Text:=Result;
+          Inbuff.SaveToFile(File_Path);
         end;
       finally
         reg_fpccfg.Free;
@@ -192,6 +193,8 @@ begin
     try
       Inbuff.LoadFromFile(File_path);
       Result := str_lazarus_cfg(Inbuff.Text,new_path,customdir);
+      Inbuff.Text:=Result;
+      Inbuff.SaveToFile(File_Path);
     finally
       Inbuff.Free;
     end;
