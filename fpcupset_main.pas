@@ -84,7 +84,6 @@ begin
   fpccfg_path:=EdFPC.Text;
   if FileExists(fpccfg_path) then begin
     DeleteFile(fpccfg_path+'.bak');
-    RenameFile(fpccfg_path,fpccfg_path+'.bak');
     Patch_fpc_cfg(fpccfg_path,newpath,EdFPCDIR.Text);
     Memo1.Lines.Add('Patched : '+ fpccfg_path);
   end else
@@ -93,7 +92,6 @@ begin
   lazcfg_path:=EdLaz.Text+PathDelim+lazarus_cfg;
   if FileExists(lazcfg_path) then begin
     DeleteFile(lazcfg_path+'.bak');
-    RenameFile(lazcfg_path,lazcfg_path+'.bak');
     Patch_lazarus_cfg(lazcfg_path,newpath);
     Memo1.Lines.Add('Patched : '+lazarus_cfg);
   end else
@@ -103,7 +101,6 @@ begin
     xml_path:=EdLaz.Text+PathDelim+lazarus_xml[i];
     if FileExists(xml_path) then begin
         DeleteFile(xml_path+'.bak');
-        RenameFile(xml_path,xml_path+'.bak');
         Patch_lazarus_xml(EdLaz.Text+PathDelim+lazarus_xml[i],newpath);
         Memo1.Lines.Add('Patched : '+lazarus_xml[i]);
       end
@@ -172,6 +169,7 @@ begin
           *)
           Result:=reg_fpccfg.Replace(Inbuff.Text,new_path+'$2$3',True);
           Inbuff.Text:=Result;
+          RenameFile(File_Path,File_Path+'.bak');
           Inbuff.SaveToFile(File_Path);
         end;
       finally
@@ -195,6 +193,7 @@ begin
       Inbuff.LoadFromFile(File_path);
       Result := str_lazarus_cfg(Inbuff.Text,new_path);
       Inbuff.Text:=Result;
+      RenameFile(File_Path,File_Path+'.bak');
       Inbuff.SaveToFile(File_Path);
     finally
       Inbuff.Free;
@@ -287,6 +286,7 @@ begin
     ProcessNode(Child,0);
     Child:=Child.NextSibling;
   end;
+  RenameFile(File_Path,File_Path+'.bak');
   WriteXML(Doc,File_Path);
 
   finally
