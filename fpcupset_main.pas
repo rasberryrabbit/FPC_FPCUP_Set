@@ -129,6 +129,11 @@ begin
   end;
 end;
 
+function IsDirectory(const s:string):Boolean;
+begin
+  Result:=FileGetAttr(s) and faDirectory<>0;
+end;
+
 function TForm1.Patch_fpc_cfg(const File_Path: string; new_path,
   fpc_dirname: string): string;
 const
@@ -227,7 +232,7 @@ begin
 
         old_path:=RemovePreDir(reg_fpccfg.Match[2]);
         while old_path<>'' do begin
-          if DirectoryExists(reg_fpccfg.Match[1]+new_path+old_path) then begin
+          if IsDirectory(new_path+old_path) then begin
             Result:=Result+reg_fpccfg.Match[1]+new_path+old_path;
             break;
           end;
@@ -316,7 +321,7 @@ begin
         old_path:=RemovePreDir(old_path);
         if (old_path<>'') and
            ( FileExists(new_path+old_path) or
-             DirectoryExists(new_path+old_path) )
+             IsDirectory(new_path+old_path) )
         then begin
           Result:=new_path+old_path;
           //Memo1.Lines.Add(Result);
