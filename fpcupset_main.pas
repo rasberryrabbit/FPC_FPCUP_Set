@@ -212,7 +212,7 @@ begin
   Result:='';
   i := 1;
   new_path:=ExtractFileDir(new_path);
-  len := length(new_path);
+  len := length(Source);
 
   reg_fpccfg := TRegExpr.Create(lazarus_pattern);
   try
