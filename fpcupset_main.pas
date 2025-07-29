@@ -83,6 +83,8 @@ begin
   // patch fpc cfg file
   fpccfg_path:=EdFPC.Text;
   if FileExists(fpccfg_path) then begin
+    DeleteFile(fpccfg_path+'.bak');
+    RenameFile(fpccfg_path,fpccfg_path+'.bak');
     Patch_fpc_cfg(fpccfg_path,newpath,EdFPCDIR.Text);
     Memo1.Lines.Add('Patched : '+ fpccfg_path);
   end else
@@ -90,6 +92,8 @@ begin
   // patch cfg files
   lazcfg_path:=EdLaz.Text+PathDelim+lazarus_cfg;
   if FileExists(lazcfg_path) then begin
+    DeleteFile(lazcfg_path+'.bak');
+    RenameFile(lazcfg_path,lazcfg_path+'.bak');
     Patch_lazarus_cfg(lazcfg_path,newpath);
     Memo1.Lines.Add('Patched : '+lazarus_cfg);
   end else
@@ -98,6 +102,8 @@ begin
   for i:=Low(lazarus_xml) to High(lazarus_xml) do begin
     xml_path:=EdLaz.Text+PathDelim+lazarus_xml[i];
     if FileExists(xml_path) then begin
+        DeleteFile(xml_path+'.bak');
+        RenameFile(xml_path,xml_path+'.bak');
         Patch_lazarus_xml(EdLaz.Text+PathDelim+lazarus_xml[i],newpath);
         Memo1.Lines.Add('Patched : '+lazarus_xml[i]);
       end
