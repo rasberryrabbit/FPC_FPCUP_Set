@@ -2,6 +2,9 @@ unit fpcupset_main;
 
 {$mode objfpc}{$H+}
 
+
+{ $define DEBUG_LAZ_XML}
+
 interface
 
 uses
@@ -88,6 +91,7 @@ begin
     Memo1.Lines.Add('Patched : '+ fpccfg_path);
   end else
     Memo1.Lines.Add('File not found : '+fpccfg_path);
+
   // patch cfg files
   lazcfg_path:=EdLaz.Text+PathDelim+lazarus_cfg;
   if FileExists(lazcfg_path) then begin
@@ -96,11 +100,12 @@ begin
     Memo1.Lines.Add('Patched : '+lazarus_cfg);
   end else
     Memo1.Lines.Add('File not found : '+lazcfg_path);
+
   // patch xml files
   for i:=Low(lazarus_xml) to High(lazarus_xml) do begin
     xml_path:=EdLaz.Text+PathDelim+lazarus_xml[i];
     if FileExists(xml_path) then begin
-        DeleteFile(xml_path+'.bak');
+        {$ifndef DEBUG_LAZ_XML} DeleteFile(xml_path+'.bak'); {$endif}
         Patch_lazarus_xml(EdLaz.Text+PathDelim+lazarus_xml[i],newpath);
         Memo1.Lines.Add('Patched : '+lazarus_xml[i]);
       end
@@ -130,8 +135,13 @@ begin
 end;
 
 function IsDirectory(const s:string):Boolean;
+var
+  i: Longint;
 begin
-  Result:=FileGetAttr(s) and faDirectory<>0;
+  Result:=False;
+  i:=FileGetAttr(s);
+  if i<>-1 then
+     Result:=i and faDirectory<>0;
 end;
 
 function TForm1.Patch_fpc_cfg(const File_Path: string; new_path,
@@ -208,7 +218,7 @@ end;
 
 function TForm1.str_lazarus_cfg(const Source: string; new_path: string): string;
 const
-  lazarus_pattern = '(\-F.)([^\n;]+)';
+  lazarus_pattern = '(\-F.)([^\n]+)';
 var
   i, len, sp, ep: Integer;
   old_path: string;
@@ -265,13 +275,20 @@ var
     if Node = nil then Exit;
     Inc(lvl);
 
+    // node value
+    if Node.NodeValue<>'' then begin
+      s:=Node.NodeValue;
+      s := str_lazarus_xml(s,new_path);
+      if s<>'' then
+        Node.NodeValue:=s;
+    end;
+    // attributes
     if Node.HasAttributes and (Node.Attributes.Length>0) then
       for i:=0 to Node.Attributes.Length-1 do begin
         s:=Node.Attributes[i].NodeValue;
         s := str_lazarus_xml(s,new_path);
-        if s<>'' then begin
+        if s<>'' then
           Node.Attributes[i].NodeValue:=s;
-        end;
       end;
 
     cNode := Node.FirstChild;
@@ -291,8 +308,10 @@ begin
     ProcessNode(Child,0);
     Child:=Child.NextSibling;
   end;
+  {$ifndef DEBUG_LAZ_XML}
   RenameFile(File_Path,File_Path+'.bak');
   WriteXML(Doc,File_Path);
+  {$endif}
 
   finally
     Doc.Free;
@@ -301,33 +320,58 @@ end;
 
 function TForm1.str_lazarus_xml(const Source: string; new_path: string): string;
 const
-  FilePath_Pattern = '[\\/][^\.\\/]+\.[^\.\\/]+';
+  FilePath_Pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^;]+';
 var
-  len: Integer;
-  i: Integer;
-  resstr: string;
+  j, np, len: Integer;
+  str,tail: string;
   reg_fpccfg: RegExpr.TRegExpr;
   old_path: string;
 begin
   Result:='';
-  i:= 1;
   new_path:=ExtractFileDir(new_path);
   reg_fpccfg:=TRegExpr.Create(FilePath_Pattern);
   try
     reg_fpccfg.ModifierM:=True;
     if reg_fpccfg.Exec(Source) then begin
-      old_path:=Source;
-      repeat
-        old_path:=RemovePreDir(old_path);
-        if (old_path<>'') and
-           ( FileExists(new_path+old_path) or
-             IsDirectory(new_path+old_path) )
-        then begin
-          Result:=new_path+old_path;
-          //Memo1.Lines.Add(Result);
-          break;
-        end;
-      until old_path='';
+      j:=Pos('$',Source);
+      if (j<1) or (j>=reg_fpccfg.MatchPos[0]) then begin
+        len:=Length(Source);
+        np:=1;
+        repeat
+          if np<reg_fpccfg.MatchPos[0] then begin
+            str:=Copy(Source,np,reg_fpccfg.MatchPos[0]-np);
+            Result:=Result+str;
+          end;
+
+          str:=reg_fpccfg.Match[0];
+          np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+          // macro folder
+          j:=Pos('$',str);
+          if j>0 then begin
+            old_path:=Copy(str,1,j-1);
+            tail:=Copy(str,j);
+          end else begin
+            old_path:=str;
+            tail:='';
+          end;
+          if old_path<>'' then begin
+            repeat
+              old_path:=RemovePreDir(old_path);
+              if (old_path<>'') {$ifndef DEBUG_LAZ_XML} and
+                 ( FileExists(new_path+old_path) or
+                   IsDirectory(new_path+old_path) ) {$endif}
+              then begin
+                Result:=Result+new_path+old_path+tail;
+                if np<len then
+                  Result:=Result+';';
+                {$ifdef DEBUG_LAZ_XML}Memo1.Lines.Add(Result);{$endif}
+                break;
+              end;
+            until old_path='';
+          end else
+            Result:=Result+old_path+tail;
+        until not reg_fpccfg.ExecPos(np);
+      end;
     end;
   finally
     reg_fpccfg.Free;
