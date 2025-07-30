@@ -26,16 +26,19 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
+    { private declarations }
     procedure str_fpc_cfg(const Source: TStringList; new_path, fpcpath: string);
-    function Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string
-      ): string;
-    function str_lazarus_cfg(const Source: string; new_path: string): string;
-    function Patch_lazarus_cfg(const File_Path: string; new_path: string): string;
+    procedure Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string);
+
+    procedure str_lazarus_cfg(const Source: TStringList; new_path: string);
+    procedure Patch_lazarus_cfg(const File_Path: string; new_path: string);
+
     function str_lazarus_xml(const Source: string; new_path: string): string;
     procedure Patch_lazarus_xml(const File_Path: string; new_path: string);
+
     procedure str_fpcdeluxe_ini(const Source: TStringList; new_path: string);
     procedure Patch_fpcupdeluxe_ini(const File_Path: string; new_path: string);
-    { private declarations }
+
   public
     { public declarations }
   end;
@@ -177,10 +180,10 @@ begin
   Result:=False;
   i:=FileGetAttrUTF8(s);
   if i<>-1 then
-     Result:=i and faDirectory<>0;
+    Result:=i and faDirectory<>0;
 end;
 
-function TForm1.Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string): string;
+procedure TForm1.Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string);
 var
   Inbuff: TStringList;
 begin
@@ -204,6 +207,7 @@ var
   i, j, len, np: Integer;
   old_path, txt, head, tail, res: string;
   reg_fpccfg: RegExpr.TRegExpr;
+  patched: Boolean;
 begin
   new_path:=ExtractFileDir(new_path);
   reg_fpccfg:=TRegExpr.Create(ini_pattern);
@@ -219,6 +223,7 @@ begin
             res:='';
             np:=1;
             repeat
+              patched:=False;
               // copy unmatched part
               res:=res+Copy(txt,np,reg_fpccfg.MatchPos[0]-np);
               np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
@@ -241,10 +246,11 @@ begin
                     IsDirectory(new_path+old_path) )
                   then begin
                     res:=res+new_path+old_path+tail;
+                    patched:=True;
                     break;
                   end;
                 until old_path='';
-                if old_path='' then
+                if not patched then
                   res:=res+head+tail;
               end else
                 res:=res+head+tail;
@@ -264,18 +270,15 @@ begin
   end;
 end;
 
-function TForm1.Patch_lazarus_cfg(const File_Path: string; new_path: string
-  ): string;
+procedure TForm1.Patch_lazarus_cfg(const File_Path: string; new_path: string);
 var
   Inbuff: TStringList;
 begin
-  Result:='';
   if FileExistsUTF8(File_path) then begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
-      Result := str_lazarus_cfg(Inbuff.Text,new_path);
-      Inbuff.Text:=Result;
+      str_lazarus_cfg(Inbuff,new_path);
       RenameFile(File_Path,File_Path+'.bak');
       Inbuff.SaveToFile(File_Path);
     finally
@@ -284,44 +287,52 @@ begin
   end;
 end;
 
-function TForm1.str_lazarus_cfg(const Source: string; new_path: string): string;
+procedure TForm1.str_lazarus_cfg(const Source: TStringList; new_path: string);
 const
-  lazarus_pattern = '(\-F.)([^\n]+)';
+  lazarus_pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^;\n]+';
 var
-  i, len, sp, ep: Integer;
-  old_path: string;
+  i, len, np: Integer;
+  old_path, txt, res: string;
   reg_fpccfg: RegExpr.TRegExpr;
+  patched: Boolean;
 begin
-  Result:='';
-  i := 1;
   new_path:=ExtractFileDir(new_path);
-  len := length(Source);
 
   reg_fpccfg := TRegExpr.Create(lazarus_pattern);
   try
     reg_fpccfg.ModifierM:=True;
-    sp:=1;
-    ep:=1;
-    if reg_fpccfg.Exec(Source) then begin
-      repeat
-        ep:=reg_fpccfg.MatchPos[0];
-        Result:=Result+Copy(Source,sp,ep-sp);
-        sp:=ep;
+    if Source.Count>0 then
+    for i:=0 to Source.Count-1 do begin
+      txt:=Source[i];
+      np:=1;
+      len:=Length(txt);
+      res:='';
 
-        old_path:=RemovePreDir(reg_fpccfg.Match[2]);
-        while (Length(old_path)>1) and (old_path<>'') do begin
-          if IsDirectory(new_path+old_path) then begin
-            Result:=Result+reg_fpccfg.Match[1]+new_path+old_path;
-            break;
+      if reg_fpccfg.Exec(txt) then begin
+        repeat
+          patched:=False;
+          res:=res+Copy(txt,np,reg_fpccfg.MatchPos[0]-np);
+          np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+
+          old_path:=reg_fpccfg.Match[0];
+          if FilenameIsAbsolute(old_path) then begin
+            repeat
+              old_path:=RemovePreDir(old_path);
+              if (Length(old_path)>1) and
+                 IsDirectory(new_path+old_path) then begin
+                  res:=res+new_path+old_path;
+                  patched:=True;
+                  break;
+              end;
+            until old_path='';
           end;
-          old_path:=RemovePreDir(old_path);
-        end;
-        if old_path<>'' then
-          sp:=ep+reg_fpccfg.MatchLen[0];
-      until not reg_fpccfg.ExecNext;
-
-      if len >= sp then
-        Result:=Result+Copy(Source,sp,len-sp);
+          if not patched then
+            res:=res+reg_fpccfg.Match[0];
+        until not reg_fpccfg.ExecNext;
+        if np<len then
+          res:=res+Copy(txt,np);
+        Source[i]:=res;
+      end;
     end;
   finally
     reg_fpccfg.Free;
@@ -388,12 +399,13 @@ end;
 
 function TForm1.str_lazarus_xml(const Source: string; new_path: string): string;
 const
-  FilePath_Pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^;]+';
+  FilePath_Pattern = '([a-zA-Z]\:)?[\\/][^;]+';
 var
-  j, np, len: Integer;
+  j, np, len, lvl: Integer;
   str,tail: string;
   reg_fpccfg: RegExpr.TRegExpr;
   old_path: string;
+  patched: Boolean;
 begin
   Result:='';
   new_path:=ExtractFileDir(new_path);
@@ -406,13 +418,11 @@ begin
         len:=Length(Source);
         np:=1;
         repeat
-          if np<reg_fpccfg.MatchPos[0] then begin
-            str:=Copy(Source,np,reg_fpccfg.MatchPos[0]-np);
-            Result:=Result+str;
-          end;
+          Result:=Result+Copy(Source,np,reg_fpccfg.MatchPos[0]-np);
+          np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+          patched:=False;
 
           str:=reg_fpccfg.Match[0];
-          np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
           // macro folder
           j:=Pos('$',str);
           if j>0 then begin
@@ -422,24 +432,34 @@ begin
             old_path:=str;
             tail:='';
           end;
-          if old_path<>'' then begin
+          if (old_path<>'') and FilenameIsAbsolute(old_path) then begin
+            lvl:=0;
             repeat
               old_path:=RemovePreDir(old_path);
+              Inc(lvl);
               if (old_path<>'') and (Length(old_path)>1)
                  {$ifndef DEBUG_LAZ_XML} and
                  ( FileExistsUTF8(new_path+old_path) or
                    IsDirectory(new_path+old_path) ) {$endif}
               then begin
                 Result:=Result+new_path+old_path+tail;
-                if np<len then
-                  Result:=Result+';';
+                patched:=True;
                 {$ifdef DEBUG_LAZ_XML}Memo1.Lines.Add(Result);{$endif}
                 break;
               end;
             until old_path='';
+            if not patched then begin
+              // base path
+              if (lvl=1) and not IsDirectory(str) then
+                Result:=Result+new_path+tail
+                else
+                  Result:=Result+str;
+            end;
           end else
-            Result:=Result+old_path+tail;
+            Result:=Result+str;
         until not reg_fpccfg.ExecPos(np);
+        if np<len then
+          Result:=Result+Copy(Source,np);
       end;
     end;
   finally
@@ -454,6 +474,7 @@ var
   i, len, np: Integer;
   old_path, txt, res: string;
   reg_fpccfg: RegExpr.TRegExpr;
+  patched: Boolean;
 begin
   new_path:=ExtractFileDir(new_path);
   reg_fpccfg:=TRegExpr.Create(ini_pattern);
@@ -467,6 +488,7 @@ begin
       res:='';
       if reg_fpccfg.Exec(txt) then begin
         repeat
+          patched:=False;
           res:=res+Copy(txt,np,reg_fpccfg.MatchPos[0]-np);
           np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
 
@@ -479,10 +501,11 @@ begin
                 IsDirectory(new_path+old_path) )
               then begin
                 res:=res+new_path+old_path;
+                patched:=True;
                 break;
               end;
             until old_path='';
-            if old_path='' then
+            if not patched then
               res:=res+reg_fpccfg.Match[0];
           end;
         until not reg_fpccfg.ExecNext;
