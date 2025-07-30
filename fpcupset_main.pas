@@ -26,12 +26,13 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    function Patch_fpc_cfg(const File_Path: string; new_path,
-      fpc_dirname: string): string;
-    function Patch_lazarus_cfg(const File_Path: string; new_path: string): string;
-    procedure Patch_lazarus_xml(const File_Path: string; new_path: string);
+    procedure str_fpc_cfg(const Source: TStringList; new_path, fpcpath: string);
+    function Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string
+      ): string;
     function str_lazarus_cfg(const Source: string; new_path: string): string;
+    function Patch_lazarus_cfg(const File_Path: string; new_path: string): string;
     function str_lazarus_xml(const Source: string; new_path: string): string;
+    procedure Patch_lazarus_xml(const File_Path: string; new_path: string);
     function str_fpcdeluxe_ini(const Source: string; new_path: string): string;
     procedure Patch_fpcupdeluxe_ini(const File_Path: string; new_path: string);
     { private declarations }
@@ -179,55 +180,87 @@ begin
      Result:=i and faDirectory<>0;
 end;
 
-function TForm1.Patch_fpc_cfg(const File_Path: string; new_path,
-  fpc_dirname: string): string;
-const
-  reg_fpc1 = '([a-z,A-Z]\:)?[\\/][^\n;]+([\\/]';
-  reg_fpc2 = '[\\/][^\n;]+)([\n;])?';
+function TForm1.Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string): string;
 var
-  len: Integer;
-  i: Integer;
-  resstr: string;
   Inbuff: TStringList;
-  reg_fpccfg: RegExpr.TRegExpr;
 begin
-  Result:='';
-  i := 1;
-  new_path:=ExtractFileDir(new_path);
-  len := length(new_path);
-  while i<=len do begin
-    if new_path[i] in ['\', '.', '[', ']', '(', ')', '$', '^', '-', '+']
-      then begin
-      Insert('\', new_path, i);
-      Inc(i); Inc(len);
-    end;
-    Inc(i);
-  end;
   if FileExistsUTF8(File_path) then begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
-      reg_fpccfg := TRegExpr.Create(reg_fpc1+fpc_dirname+reg_fpc2);
-      try
-        reg_fpccfg.ModifierM:=True;
-        i:=0;
-        if reg_fpccfg.Exec(Inbuff.Text) then begin
-          (*
-          repeat
-            Memo1.Lines.Add(reg_fpccfg.Match[0]+'!'+reg_fpccfg.Match[2]);
-          until not reg_fpccfg.ExecNext;
-          *)
-          Result:=reg_fpccfg.Replace(Inbuff.Text,new_path+'$2$3',True);
-          Inbuff.Text:=Result;
-          RenameFile(File_Path,File_Path+'.bak');
-          Inbuff.SaveToFile(File_Path);
-        end;
-      finally
-        reg_fpccfg.Free;
-      end;
+      str_fpc_cfg(Inbuff,new_path,fpcpath);
+      RenameFile(File_Path,File_Path+'.bak');
+      Inbuff.SaveToFile(File_Path);
     finally
       Inbuff.Free;
     end;
+  end;
+end;
+
+procedure TForm1.str_fpc_cfg(const Source: TStringList; new_path, fpcpath: string);
+const
+  ini_pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^;\n]+';
+var
+  i, j, len, np: Integer;
+  old_path, txt, head, tail, res: string;
+  reg_fpccfg: RegExpr.TRegExpr;
+begin
+  new_path:=ExtractFileDir(new_path);
+  reg_fpccfg:=TRegExpr.Create(ini_pattern);
+  try
+    reg_fpccfg.ModifierM:=True;
+    if Source.Count>0 then begin
+      for i:=0 to Source.Count-1 do begin
+        txt:=Source[i];
+        len:=Length(txt);
+        // if not comment
+        if Pos('#',txt)=0 then begin
+          if reg_fpccfg.Exec(txt) then begin
+            res:='';
+            np:=1;
+            repeat
+              // copy unmatched part
+              res:=res+Copy(txt,np,reg_fpccfg.MatchPos[0]-np);
+              np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+
+              // check macro
+              j:=Pos('$',reg_fpccfg.Match[0]);
+              if j>0 then begin
+                head:=Copy(reg_fpccfg.Match[0],1,j-1);
+                tail:=Copy(reg_fpccfg.Match[0],j);
+              end else begin
+                head:=reg_fpccfg.Match[0];
+                tail:='';
+              end;
+              if head<>'' then begin
+                old_path:=head;
+                repeat
+                  old_path:=RemovePreDir(old_path);
+                  if (Pos(fpcpath,old_path)>2) and (old_path<>'') and (Length(old_path)>1) and
+                  ( FileExistsUTF8(new_path+old_path) or
+                    IsDirectory(new_path+old_path) )
+                  then begin
+                    res:=res+new_path+old_path+tail;
+                    break;
+                  end;
+                until old_path='';
+                if old_path='' then
+                  res:=res+head+tail;
+              end else
+                res:=res+head+tail;
+            until not reg_fpccfg.ExecNext;
+            if np<len then
+              res:=res+Copy(txt,np);
+
+            if txt<>res then
+              Source[i]:=res;
+            Memo1.Lines.Add(res);
+          end;
+        end;
+      end;
+    end;
+  finally
+    reg_fpccfg.Free;
   end;
 end;
 
