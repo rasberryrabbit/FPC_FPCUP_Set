@@ -32,6 +32,8 @@ type
     procedure Patch_lazarus_xml(const File_Path: string; new_path: string);
     function str_lazarus_cfg(const Source: string; new_path: string): string;
     function str_lazarus_xml(const Source: string; new_path: string): string;
+    function str_fpcdeluxe_ini(const Source: string; new_path: string): string;
+    procedure Patch_fpcupdeluxe_ini(const File_Path: string; new_path: string);
     { private declarations }
   public
     { public declarations }
@@ -112,6 +114,13 @@ begin
       else
         Memo1.Lines.Add('File Not Found : '+xml_path);
   end;
+
+  if FileExists('fpcupdeluxe.ini') then begin
+    DeleteFile('fpcupdeluxe.ini.bak');
+    Patch_fpcupdeluxe_ini('fpcupdeluxe.ini',newpath);
+    Memo1.Lines.Add('Patched : fpcupdeluxe.ini');
+  end else
+    Memo1.Lines.Add('File Not Found : fpcupdeluxe.ini');
 end;
 
 function RemovePreDir(const path: string):string;
@@ -376,6 +385,71 @@ begin
     end;
   finally
     reg_fpccfg.Free;
+  end;
+end;
+
+function TForm1.str_fpcdeluxe_ini(const Source: string; new_path: string
+  ): string;
+const
+  ini_pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^,\n]+';
+var
+  i, len, np: Integer;
+  old_path: string;
+  reg_fpccfg: RegExpr.TRegExpr;
+begin
+  Result:='';
+  new_path:=ExtractFileDir(new_path);
+  reg_fpccfg:=TRegExpr.Create(ini_pattern);
+  try
+    reg_fpccfg.ModifierM:=True;
+    len:=Length(Source);
+    np:=1;
+    if reg_fpccfg.Exec(Source) then begin
+      repeat
+        Result:=Result+Copy(Source,np,reg_fpccfg.MatchPos[0]-np);
+        np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+
+        old_path:=reg_fpccfg.Match[0];
+        if old_path<>'' then begin
+          repeat
+            old_path:=RemovePreDir(old_path);
+            if (old_path<>'') and (Length(old_path)>1) and
+            ( FileExists(new_path+old_path) or
+              IsDirectory(new_path+old_path) )
+            then begin
+              Result:=Result+new_path+old_path;
+              break;
+            end;
+          until old_path='';
+          if old_path='' then
+            Result:=Result+reg_fpccfg.Match[0];
+        end;
+      until not reg_fpccfg.ExecNext;
+      if np<len then
+        Result:=Result+Copy(Source,np);
+    end;
+  finally
+    reg_fpccfg.Free;
+  end;
+end;
+
+procedure TForm1.Patch_fpcupdeluxe_ini(const File_Path: string; new_path: string
+  );
+var
+  Inbuff: TStringList;
+  str: string;
+begin
+  if FileExists(File_path) then begin
+    InBuff := TStringList.Create;
+    try
+      Inbuff.LoadFromFile(File_path);
+      str := str_fpcdeluxe_ini(Inbuff.Text,new_path);
+      Inbuff.Text:=str;
+      RenameFile(File_Path,File_Path+'.bak');
+      Inbuff.SaveToFile(File_Path);
+    finally
+      Inbuff.Free;
+    end;
   end;
 end;
 

@@ -5,7 +5,7 @@ object Form1: TForm1
   Width = 541
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'fpcup path changer'
+  Caption = 'fpcupdeluxe path changer'
   ClientHeight = 369
   ClientWidth = 541
   Position = poDefaultPosOnly
