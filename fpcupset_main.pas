@@ -241,7 +241,7 @@ begin
         sp:=ep;
 
         old_path:=RemovePreDir(reg_fpccfg.Match[2]);
-        while old_path<>'' do begin
+        while (Length(old_path)>1) and (old_path<>'') do begin
           if IsDirectory(new_path+old_path) then begin
             Result:=Result+reg_fpccfg.Match[1]+new_path+old_path;
             break;
@@ -354,7 +354,7 @@ begin
             old_path:=str;
             tail:='';
           end;
-          if old_path<>'' then begin
+          if (Length(old_path)>1) and (old_path<>'') then begin
             repeat
               old_path:=RemovePreDir(old_path);
               if (old_path<>'') {$ifndef DEBUG_LAZ_XML} and
