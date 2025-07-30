@@ -44,12 +44,14 @@ var
 
 implementation
 
-uses shlobj, Laz2_DOM, laz2_XMLRead, laz2_XMLWrite, RegExpr, strutils;
+uses
+  Laz2_DOM, laz2_XMLRead, laz2_XMLWrite, RegExpr, strutils,
+  LazFileUtils, FindFile;
 
 {$R *.lfm}
 
 var
-  newpath:string;
+  WorkPath:string;
 
 
 const
@@ -72,10 +74,34 @@ const
 { TForm1 }
 
 procedure TForm1.FormShow(Sender: TObject);
+var
+  ffind: TFindFile;
+  flist: TStringList;
+  i: Integer;
 begin
-  newpath:=ExtractFilePath(ParamStr(0));
-  EdLaz.Text:=newpath+config_folder;
-  EdFPC.Text:=newpath+config_fpc;
+  WorkPath:=ExtractFilePath(ParamStr(0));
+  EdLaz.Text:=WorkPath+config_folder;
+  EdFPC.Text:=WorkPath+config_fpc;
+
+  // find fpc.cfg
+  ffind:=TFindFile.Create(nil);
+  try
+    ffind.FileMask:='*.cfg';
+    ffind.Path:=WorkPath;
+    ffind.InSubFolders:=True;
+    flist:=ffind.SearchForFiles;
+    if flist.Count>0 then begin
+      for i:=0 to flist.Count-1 do begin
+        if Pos('fpc.cfg',flist[i])>0 then begin
+          EdFPC.Text:=flist[i];
+          Memo1.Lines.Add('fpc.cfg is found : '+flist[i]);
+          break;
+        end;
+      end;
+    end;
+  finally
+    ffind.Free;
+  end;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -84,21 +110,21 @@ var
   i : Integer;
 begin
   Memo1.Clear;
-  Memo1.Lines.Add('New Path : '+newpath);
+  Memo1.Lines.Add('New Path : '+WorkPath);
   // patch fpc cfg file
   fpccfg_path:=EdFPC.Text;
-  if FileExists(fpccfg_path) then begin
+  if FileExistsUTF8(fpccfg_path) then begin
     DeleteFile(fpccfg_path+'.bak');
-    Patch_fpc_cfg(fpccfg_path,newpath,EdFPCDIR.Text);
+    Patch_fpc_cfg(fpccfg_path,WorkPath,EdFPCDIR.Text);
     Memo1.Lines.Add('Patched : '+ fpccfg_path);
   end else
     Memo1.Lines.Add('File not found : '+fpccfg_path);
 
   // patch cfg files
   lazcfg_path:=EdLaz.Text+PathDelim+lazarus_cfg;
-  if FileExists(lazcfg_path) then begin
+  if FileExistsUTF8(lazcfg_path) then begin
     DeleteFile(lazcfg_path+'.bak');
-    Patch_lazarus_cfg(lazcfg_path,newpath);
+    Patch_lazarus_cfg(lazcfg_path,WorkPath);
     Memo1.Lines.Add('Patched : '+lazarus_cfg);
   end else
     Memo1.Lines.Add('File not found : '+lazcfg_path);
@@ -106,18 +132,18 @@ begin
   // patch xml files
   for i:=Low(lazarus_xml) to High(lazarus_xml) do begin
     xml_path:=EdLaz.Text+PathDelim+lazarus_xml[i];
-    if FileExists(xml_path) then begin
+    if FileExistsUTF8(xml_path) then begin
         {$ifndef DEBUG_LAZ_XML} DeleteFile(xml_path+'.bak'); {$endif}
-        Patch_lazarus_xml(EdLaz.Text+PathDelim+lazarus_xml[i],newpath);
+        Patch_lazarus_xml(EdLaz.Text+PathDelim+lazarus_xml[i],WorkPath);
         Memo1.Lines.Add('Patched : '+lazarus_xml[i]);
       end
       else
         Memo1.Lines.Add('File Not Found : '+xml_path);
   end;
 
-  if FileExists('fpcupdeluxe.ini') then begin
+  if FileExistsUTF8('fpcupdeluxe.ini') then begin
     DeleteFile('fpcupdeluxe.ini.bak');
-    Patch_fpcupdeluxe_ini('fpcupdeluxe.ini',newpath);
+    Patch_fpcupdeluxe_ini('fpcupdeluxe.ini',WorkPath);
     Memo1.Lines.Add('Patched : fpcupdeluxe.ini');
   end else
     Memo1.Lines.Add('File Not Found : fpcupdeluxe.ini');
@@ -148,7 +174,7 @@ var
   i: Longint;
 begin
   Result:=False;
-  i:=FileGetAttr(s);
+  i:=FileGetAttrUTF8(s);
   if i<>-1 then
      Result:=i and faDirectory<>0;
 end;
@@ -177,7 +203,7 @@ begin
     end;
     Inc(i);
   end;
-  if FileExists(File_path) then begin
+  if FileExistsUTF8(File_path) then begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
@@ -211,7 +237,7 @@ var
   Inbuff: TStringList;
 begin
   Result:='';
-  if FileExists(File_path) then begin
+  if FileExistsUTF8(File_path) then begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
@@ -368,7 +394,7 @@ begin
               old_path:=RemovePreDir(old_path);
               if (old_path<>'') and (Length(old_path)>1)
                  {$ifndef DEBUG_LAZ_XML} and
-                 ( FileExists(new_path+old_path) or
+                 ( FileExistsUTF8(new_path+old_path) or
                    IsDirectory(new_path+old_path) ) {$endif}
               then begin
                 Result:=Result+new_path+old_path+tail;
@@ -414,7 +440,7 @@ begin
           repeat
             old_path:=RemovePreDir(old_path);
             if (old_path<>'') and (Length(old_path)>1) and
-            ( FileExists(new_path+old_path) or
+            ( FileExistsUTF8(new_path+old_path) or
               IsDirectory(new_path+old_path) )
             then begin
               Result:=Result+new_path+old_path;
@@ -439,7 +465,7 @@ var
   Inbuff: TStringList;
   str: string;
 begin
-  if FileExists(File_path) then begin
+  if FileExistsUTF8(File_path) then begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
