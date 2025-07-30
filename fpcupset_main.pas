@@ -354,10 +354,11 @@ begin
             old_path:=str;
             tail:='';
           end;
-          if (Length(old_path)>1) and (old_path<>'') then begin
+          if old_path<>'' then begin
             repeat
               old_path:=RemovePreDir(old_path);
-              if (old_path<>'') {$ifndef DEBUG_LAZ_XML} and
+              if (old_path<>'') and (Length(old_path)>1)
+                 {$ifndef DEBUG_LAZ_XML} and
                  ( FileExists(new_path+old_path) or
                    IsDirectory(new_path+old_path) ) {$endif}
               then begin
