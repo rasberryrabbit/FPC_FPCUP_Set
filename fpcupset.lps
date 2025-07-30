@@ -20,8 +20,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="46"/>
-        <CursorPos X="7" Y="193"/>
+        <TopLine Value="239"/>
+        <CursorPos X="15" Y="257"/>
         <UsageCount Value="44"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -94,123 +94,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="30" Column="14" TopLine="17"/>
+        <Caret Line="228" TopLine="216"/>
       </Position1>
       <Position2>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="213" TopLine="204"/>
+        <Caret Line="229" TopLine="216"/>
       </Position2>
       <Position3>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="214" TopLine="207"/>
+        <Caret Line="234" TopLine="216"/>
       </Position3>
       <Position4>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="218" TopLine="210"/>
+        <Caret Line="235" TopLine="225"/>
       </Position4>
       <Position5>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="219" TopLine="210"/>
+        <Caret Line="237" TopLine="225"/>
       </Position5>
       <Position6>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="222" TopLine="210"/>
+        <Caret Line="206" TopLine="199"/>
       </Position6>
       <Position7>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="223" TopLine="210"/>
+        <Caret Line="238" TopLine="226"/>
       </Position7>
       <Position8>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="226" TopLine="216"/>
+        <Caret Line="239" TopLine="226"/>
       </Position8>
       <Position9>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="227" TopLine="216"/>
+        <Caret Line="240" TopLine="226"/>
       </Position9>
       <Position10>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="228" TopLine="216"/>
+        <Caret Line="245" TopLine="226"/>
       </Position10>
       <Position11>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="229" TopLine="216"/>
+        <Caret Line="237" TopLine="226"/>
       </Position11>
       <Position12>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="234" TopLine="216"/>
+        <Caret Line="206" TopLine="193"/>
       </Position12>
       <Position13>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="235" TopLine="225"/>
+        <Caret Line="238" TopLine="226"/>
       </Position13>
       <Position14>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="237" TopLine="225"/>
+        <Caret Line="239" TopLine="226"/>
       </Position14>
       <Position15>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="206" TopLine="199"/>
+        <Caret Line="240" TopLine="226"/>
       </Position15>
       <Position16>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="238" TopLine="226"/>
+        <Caret Line="242" TopLine="232"/>
       </Position16>
       <Position17>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="239" TopLine="226"/>
+        <Caret Line="243" TopLine="232"/>
       </Position17>
       <Position18>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="240" TopLine="226"/>
+        <Caret Line="246" TopLine="232"/>
       </Position18>
       <Position19>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="245" TopLine="226"/>
+        <Caret Line="250" TopLine="226"/>
       </Position19>
       <Position20>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="237" TopLine="226"/>
+        <Caret Line="183" Column="20" TopLine="171"/>
       </Position20>
       <Position21>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="206" TopLine="193"/>
+        <Caret Line="110" Column="39" TopLine="97"/>
       </Position21>
       <Position22>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="238" TopLine="226"/>
+        <Caret Line="147" Column="12" TopLine="132"/>
       </Position22>
       <Position23>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="239" TopLine="226"/>
+        <Caret Line="37" Column="26" TopLine="25"/>
       </Position23>
       <Position24>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="240" TopLine="226"/>
+        <Caret Line="505" Column="26" TopLine="489"/>
       </Position24>
       <Position25>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="242" TopLine="232"/>
+        <Caret Line="37" Column="17" TopLine="25"/>
       </Position25>
       <Position26>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="243" TopLine="232"/>
+        <Caret Line="505" Column="17" TopLine="491"/>
       </Position26>
       <Position27>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="246" TopLine="232"/>
+        <Caret Line="36" Column="16" TopLine="24"/>
       </Position27>
       <Position28>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="250" TopLine="226"/>
+        <Caret Line="503" Column="11" TopLine="472"/>
       </Position28>
       <Position29>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="183" Column="20" TopLine="171"/>
+        <Caret Line="458" TopLine="445"/>
       </Position29>
       <Position30>
         <Filename Value="fpcupset_main.pas"/>
-        <Caret Line="110" Column="39" TopLine="97"/>
+        <Caret Line="494" Column="11" TopLine="469"/>
       </Position30>
     </JumpHistory>
     <RunParams>

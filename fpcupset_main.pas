@@ -33,7 +33,7 @@ type
     function Patch_lazarus_cfg(const File_Path: string; new_path: string): string;
     function str_lazarus_xml(const Source: string; new_path: string): string;
     procedure Patch_lazarus_xml(const File_Path: string; new_path: string);
-    function str_fpcdeluxe_ini(const Source: string; new_path: string): string;
+    procedure str_fpcdeluxe_ini(const Source: TStringList; new_path: string);
     procedure Patch_fpcupdeluxe_ini(const File_Path: string; new_path: string);
     { private declarations }
   public
@@ -254,7 +254,7 @@ begin
 
             if txt<>res then
               Source[i]:=res;
-            Memo1.Lines.Add(res);
+            //Memo1.Lines.Add(res);
           end;
         end;
       end;
@@ -447,45 +447,51 @@ begin
   end;
 end;
 
-function TForm1.str_fpcdeluxe_ini(const Source: string; new_path: string
-  ): string;
+procedure TForm1.str_fpcdeluxe_ini(const Source: TStringList; new_path: string);
 const
   ini_pattern = '([a-zA-Z]\:)?[\\/][^\\/]+[\\/][^,\n]+';
 var
   i, len, np: Integer;
-  old_path: string;
+  old_path, txt, res: string;
   reg_fpccfg: RegExpr.TRegExpr;
 begin
-  Result:='';
   new_path:=ExtractFileDir(new_path);
   reg_fpccfg:=TRegExpr.Create(ini_pattern);
   try
     reg_fpccfg.ModifierM:=True;
-    len:=Length(Source);
-    np:=1;
-    if reg_fpccfg.Exec(Source) then begin
-      repeat
-        Result:=Result+Copy(Source,np,reg_fpccfg.MatchPos[0]-np);
-        np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
+    if Source.Count>0 then
+    for i:=0 to Source.Count-1 do begin
+      txt:=Source[i];
+      len:=Length(txt);
+      np:=1;
+      res:='';
+      if reg_fpccfg.Exec(txt) then begin
+        repeat
+          res:=res+Copy(txt,np,reg_fpccfg.MatchPos[0]-np);
+          np:=reg_fpccfg.MatchPos[0]+reg_fpccfg.MatchLen[0];
 
-        old_path:=reg_fpccfg.Match[0];
-        if old_path<>'' then begin
-          repeat
-            old_path:=RemovePreDir(old_path);
-            if (old_path<>'') and (Length(old_path)>1) and
-            ( FileExistsUTF8(new_path+old_path) or
-              IsDirectory(new_path+old_path) )
-            then begin
-              Result:=Result+new_path+old_path;
-              break;
-            end;
-          until old_path='';
-          if old_path='' then
-            Result:=Result+reg_fpccfg.Match[0];
-        end;
-      until not reg_fpccfg.ExecNext;
-      if np<len then
-        Result:=Result+Copy(Source,np);
+          old_path:=reg_fpccfg.Match[0];
+          if old_path<>'' then begin
+            repeat
+              old_path:=RemovePreDir(old_path);
+              if (old_path<>'') and (Length(old_path)>1) and
+              ( FileExistsUTF8(new_path+old_path) or
+                IsDirectory(new_path+old_path) )
+              then begin
+                res:=res+new_path+old_path;
+                break;
+              end;
+            until old_path='';
+            if old_path='' then
+              res:=res+reg_fpccfg.Match[0];
+          end;
+        until not reg_fpccfg.ExecNext;
+        if np<len then
+          res:=res+Copy(txt,np);
+
+        if txt<>res then
+          Source[i]:=res;
+      end;
     end;
   finally
     reg_fpccfg.Free;
@@ -502,8 +508,7 @@ begin
     InBuff := TStringList.Create;
     try
       Inbuff.LoadFromFile(File_path);
-      str := str_fpcdeluxe_ini(Inbuff.Text,new_path);
-      Inbuff.Text:=str;
+      str_fpcdeluxe_ini(Inbuff,new_path);
       RenameFile(File_Path,File_Path+'.bak');
       Inbuff.SaveToFile(File_Path);
     finally
