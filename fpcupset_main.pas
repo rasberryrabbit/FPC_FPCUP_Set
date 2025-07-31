@@ -4,6 +4,7 @@ unit fpcupset_main;
 
 
 { $define DEBUG_LAZ_XML}
+{ $define DEBUG_DIR_EXISTS}
 
 interface
 
@@ -177,10 +178,19 @@ function IsDirectory(const s:string):Boolean;
 var
   i: Longint;
 begin
+{$ifndef DEBUG_DIR_EXISTS}
   Result:=False;
   i:=FileGetAttrUTF8(s);
   if i<>-1 then
     Result:=i and faDirectory<>0;
+{$else}
+  Result:=DirectoryExistsUTF8(s);
+  if not Result then begin
+    i:=FileGetAttrUTF8(s);
+    if i<>-1 then
+      Form1.Memo1.Lines.Add(IntToBin(i,32));
+  end;
+{$endif}
 end;
 
 procedure TForm1.Patch_fpc_cfg(const File_Path: string; new_path, fpcpath: string);
