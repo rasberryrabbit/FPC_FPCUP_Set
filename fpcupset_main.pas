@@ -89,10 +89,10 @@ begin
   EdLaz.Text:=WorkPath+config_folder;
   EdFPC.Text:=WorkPath+config_fpc;
 
-  // find fpc.cfg
+  // search fpc.cfg
   ffind:=TFindFile.Create(nil);
   try
-    ffind.FileMask:='*.cfg';
+    ffind.FileMask:='fp*.cfg';
     ffind.Path:=WorkPath;
     ffind.InSubFolders:=True;
     flist:=ffind.SearchForFiles;
@@ -125,6 +125,28 @@ begin
             end;
           end;
           Memo1.Lines.Add('fpc.cfg is found : '+flist[i]);
+          break;
+        end;
+      end;
+    end;
+  finally
+    ffind.Free;
+  end;
+
+  // search lazarus config folder.
+  ffind:=TFindFile.Create(nil);
+  try
+    ffind.FileMask:='environmentopt*.xml';
+    ffind.Path:=WorkPath;
+    ffind.InSubFolders:=True;
+    flist:=ffind.SearchForFiles;
+    if flist.Count>0 then begin
+      for i:=0 to flist.Count-1 do begin
+        s:=flist[i];
+        j:=Pos(DirectorySeparator+'environmentoptions.xml',s);
+        if j>0 then begin
+          EdLaz.Text:=Copy(s,1,j-1);
+          Memo1.Lines.Add('Lazarus config folder is found : '+EdLaz.Text);
           break;
         end;
       end;
