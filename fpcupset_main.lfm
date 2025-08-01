@@ -5,27 +5,27 @@ object Form1: TForm1
   Width = 541
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
-  Caption = 'fpcupdeluxe path changer'
+  Caption = 'fpcupdeluxe Path Update'
   ClientHeight = 369
   ClientWidth = 541
   Position = poDefaultPosOnly
   LCLVersion = '4.99.0.0'
   OnShow = FormShow
   object EdLaz: TEdit
-    Left = 80
+    Left = 128
     Height = 23
     Top = 24
-    Width = 447
+    Width = 399
     Anchors = [akTop, akLeft, akRight]
     ReadOnly = True
     TabOrder = 0
     Text = 'EdLaz'
   end
   object EdFPC: TEdit
-    Left = 80
+    Left = 128
     Height = 23
     Top = 56
-    Width = 447
+    Width = 399
     Anchors = [akTop, akLeft, akRight]
     ReadOnly = True
     TabOrder = 1
@@ -37,7 +37,7 @@ object Form1: TForm1
     Top = 332
     Width = 75
     Anchors = [akBottom]
-    Caption = 'Change'
+    Caption = 'Update'
     TabOrder = 2
     OnClick = Button1Click
   end
@@ -56,10 +56,10 @@ object Form1: TForm1
     WordWrap = False
   end
   object EdFPCDIR: TEdit
-    Left = 80
+    Left = 128
     Height = 23
     Top = 88
-    Width = 447
+    Width = 399
     TabOrder = 4
     Text = 'fpc'
   end
@@ -67,21 +67,21 @@ object Form1: TForm1
     Left = 16
     Height = 12
     Top = 32
-    Width = 46
-    Caption = 'Lazarus'
+    Width = 84
+    Caption = 'Lazarus config'
   end
   object FPC: TLabel
     Left = 16
     Height = 12
     Top = 62
-    Width = 24
-    Caption = 'FPC'
+    Width = 38
+    Caption = 'fpc.cfg'
   end
   object FPCDIR: TLabel
     Left = 16
     Height = 12
     Top = 96
-    Width = 43
-    Caption = 'FPCDIR'
+    Width = 95
+    Caption = 'FPC folder name'
   end
 end

@@ -82,7 +82,8 @@ procedure TForm1.FormShow(Sender: TObject);
 var
   ffind: TFindFile;
   flist: TStringList;
-  i: Integer;
+  i, j, k: Integer;
+  s: string;
 begin
   WorkPath:=ExtractFilePath(ParamStr(0));
   EdLaz.Text:=WorkPath+config_folder;
@@ -97,8 +98,21 @@ begin
     flist:=ffind.SearchForFiles;
     if flist.Count>0 then begin
       for i:=0 to flist.Count-1 do begin
-        if Pos('fpc.cfg',flist[i])>0 then begin
-          EdFPC.Text:=flist[i];
+        if Pos(DirectorySeparator+'fpc.cfg',flist[i])>0 then begin
+          s:=flist[i];
+          EdFPC.Text:=s;
+          // set fpc folder name
+          j:=Pos(DirectorySeparator+'bin',s);
+          if j>0 then begin
+            k:=j-1;
+            while k>0 do begin
+              if s[k]=DirectorySeparator then begin
+                EdFPCDIR.Text:=Copy(s,k+1,j-k-1);
+                break;
+              end;
+              Dec(k);
+            end;
+          end;
           Memo1.Lines.Add('fpc.cfg is found : '+flist[i]);
           break;
         end;
