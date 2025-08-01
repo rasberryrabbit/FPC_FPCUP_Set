@@ -82,8 +82,8 @@ procedure TForm1.FormShow(Sender: TObject);
 var
   ffind: TFindFile;
   flist: TStringList;
-  i, j, k: Integer;
-  s: string;
+  i, j, k, m: Integer;
+  s, t: string;
 begin
   WorkPath:=ExtractFilePath(ParamStr(0));
   EdLaz.Text:=WorkPath+config_folder;
@@ -107,8 +107,19 @@ begin
             k:=j-1;
             while k>0 do begin
               if s[k]=DirectorySeparator then begin
-                EdFPCDIR.Text:=Copy(s,k+1,j-k-1);
-                break;
+                t:=Copy(s,k+1,j-k-1);
+                m:=Length(t);
+                // skip version folder
+                while m>0 do begin
+                  if t[m] in ['0'..'9'] then
+                    break;
+                  Dec(m);
+                end;
+                if m=0 then begin
+                  EdFPCDIR.Text:=t;
+                  break;
+                end;
+                j:=k;
               end;
               Dec(k);
             end;
