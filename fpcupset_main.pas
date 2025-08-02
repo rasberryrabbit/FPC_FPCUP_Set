@@ -181,6 +181,15 @@ begin
   end else
     Memo1.Lines.Add('File not found : '+lazcfg_path);
 
+  // includelinks.xml - special case
+  lazcfg_path:=EdLaz.Text+PathDelim+'includelinks.xml';
+  if FileExistsUTF8(lazcfg_path) then begin
+    DeleteFile(lazcfg_path+'.bak');
+    Patch_lazarus_cfg(lazcfg_path,WorkPath);
+    Memo1.Lines.Add('Patched : includelinks.xml');
+  end else
+    Memo1.Lines.Add('File not found : '+lazcfg_path);
+
   // patch xml files
   for i:=Low(lazarus_xml) to High(lazarus_xml) do begin
     xml_path:=EdLaz.Text+PathDelim+lazarus_xml[i];
@@ -398,33 +407,32 @@ end;
 
 procedure TForm1.Patch_lazarus_xml(const File_Path: string; new_path: string);
 var
-  Child : TDOMNode;
-  Doc : TXMLDocument;
-  i : Integer;
+  Child: TDOMNode;
+  Doc: TXMLDocument;
 
   procedure ProcessNode(Node: TDOMNode; lvl:Integer);
   var
     cNode: TDOMNode;
     s: string;
-    i : Integer;
+    ii : Integer;
   begin
     if Node = nil then Exit;
     Inc(lvl);
 
     // node value
     if Node.NodeValue<>'' then begin
-      s:=Node.NodeValue;
+      s:= Node.NodeValue;
       s := str_lazarus_xml(s,new_path);
       if s<>'' then
         Node.NodeValue:=s;
     end;
     // attributes
     if Node.HasAttributes and (Node.Attributes.Length>0) then
-      for i:=0 to Node.Attributes.Length-1 do begin
-        s:=Node.Attributes[i].NodeValue;
+      for ii:=0 to Node.Attributes.Length-1 do begin
+        s:=Node.Attributes[ii].NodeValue;
         s := str_lazarus_xml(s,new_path);
         if s<>'' then
-          Node.Attributes[i].NodeValue:=s;
+          Node.Attributes[ii].NodeValue:=s;
       end;
 
     cNode := Node.FirstChild;
@@ -438,17 +446,16 @@ var
 
 begin
   try
-  ReadXMLFile(Doc,File_Path);
-  Child := Doc.DocumentElement.FirstChild;
-  while Child<>nil do begin
-    ProcessNode(Child,0);
-    Child:=Child.NextSibling;
-  end;
-  {$ifndef DEBUG_LAZ_XML}
-  RenameFile(File_Path,File_Path+'.bak');
-  WriteXML(Doc,File_Path);
-  {$endif}
-
+    ReadXMLFile(Doc,File_Path,[]);
+    Child := Doc.DocumentElement.FirstChild;
+    while Child<>nil do begin
+      ProcessNode(Child,0);
+      Child:=Child.NextSibling;
+    end;
+    {$ifndef DEBUG_LAZ_XML}
+    RenameFile(File_Path,File_Path+'.bak');
+    WriteXML(Doc,File_Path);
+    {$endif}
   finally
     Doc.Free;
   end;
@@ -456,7 +463,7 @@ end;
 
 function TForm1.str_lazarus_xml(const Source: string; new_path: string): string;
 const
-  FilePath_Pattern = '([a-zA-Z]\:)?[\\/][^;]+';
+  FilePath_Pattern = '([a-zA-Z]\:)?[\\/][^;"]+';
 var
   j, np, len, lvl: Integer;
   str,tail: string;
