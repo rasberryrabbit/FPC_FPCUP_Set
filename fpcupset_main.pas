@@ -321,7 +321,7 @@ begin
               end else
                 res:=res+head+tail;
             until not reg_fpccfg.ExecNext;
-            if np<len then
+            if np<=len then
               res:=res+Copy(txt,np);
 
             if txt<>res then
@@ -395,7 +395,7 @@ begin
           if not patched then
             res:=res+reg_fpccfg.Match[0];
         until not reg_fpccfg.ExecNext;
-        if np<len then
+        if np<=len then
           res:=res+Copy(txt,np);
         Source[i]:=res;
       end;
@@ -421,7 +421,7 @@ var
 
     // node value
     if Node.NodeValue<>'' then begin
-      s:= Node.NodeValue;
+      s:= XMLValueToStr(Node.NodeValue);
       s := str_lazarus_xml(s,new_path);
       if s<>'' then
         Node.NodeValue:=s;
@@ -429,7 +429,7 @@ var
     // attributes
     if Node.HasAttributes and (Node.Attributes.Length>0) then
       for ii:=0 to Node.Attributes.Length-1 do begin
-        s:=Node.Attributes[ii].NodeValue;
+        s:=XMLValueToStr(Node.Attributes[ii].NodeValue);
         s := str_lazarus_xml(s,new_path);
         if s<>'' then
           Node.Attributes[ii].NodeValue:=s;
@@ -521,8 +521,8 @@ begin
             end;
           end else
             Result:=Result+str;
-        until not reg_fpccfg.ExecPos(np);
-        if np<len then
+        until not reg_fpccfg.ExecNext;
+        if np<=len then
           Result:=Result+Copy(Source,np);
       end;
     end;
@@ -573,7 +573,7 @@ begin
               res:=res+reg_fpccfg.Match[0];
           end;
         until not reg_fpccfg.ExecNext;
-        if np<len then
+        if np<=len then
           res:=res+Copy(txt,np);
 
         if txt<>res then
