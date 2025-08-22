@@ -230,6 +230,44 @@ begin
   end;
 end;
 
+// check including 'bin', 'units'
+function CheckPrePath(const path: string; folder: array of string):Boolean;
+var
+  i, j, l, k, prelimit: Integer;
+  r: string;
+  cmpres: Boolean;
+begin
+  Result:=False;
+  r:='';
+  prelimit:=0;
+  l:=Length(path);
+  i:=1;
+  k:=1;
+  while i<=l do begin
+    if (path[i] in ['/','\']) and (i>1) then begin
+      inc(prelimit);
+      r:=Copy(path,k+1,i-k-1);
+      k:=i;
+      if (prelimit>1) and (r<>'') then begin
+        cmpres:=False;
+        j:=0;
+        if Length(folder)>0 then
+          while (j<Length(folder)) and not cmpres do begin
+            cmpres:=UpperCase(r)=UpperCase(folder[j]);
+            if cmpres then
+              break;
+            Inc(j);
+          end;
+        if cmpres then begin
+          Result:=True;
+          break;
+        end;
+      end;
+    end;
+    Inc(i);
+  end;
+end;
+
 function IsDirectory(const s:string):Boolean;
 var
   i: Longint;
