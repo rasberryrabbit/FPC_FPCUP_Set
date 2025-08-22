@@ -230,7 +230,7 @@ begin
   end;
 end;
 
-// check including 'bin', 'units'
+// check including 'fpc', 'bin', 'units'
 function CheckPrePath(const path: string; folder: array of string):Boolean;
 var
   i, j, l, k, prelimit: Integer;
@@ -248,7 +248,7 @@ begin
       inc(prelimit);
       r:=Copy(path,k+1,i-k-1);
       k:=i;
-      if (prelimit>1) and (r<>'') then begin
+      if r<>'' then begin
         cmpres:=False;
         j:=0;
         if Length(folder)>0 then
